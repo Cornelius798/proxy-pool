@@ -10,6 +10,13 @@
 import concurrent.futures, os, re, socket, sys, time, urllib.request
 
 SOURCES = [
+    # === 已验证源（优先，对方已做存活检查）===
+    ("https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/http/raw/all.txt", "http"),
+    ("https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks4/raw/all.txt", "socks4"),
+    ("https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks5/raw/all.txt", "socks5"),
+    ("https://raw.githubusercontent.com/Skillter/ProxyGather/master/proxies/working-proxies-http.txt", "http"),
+    ("https://raw.githubusercontent.com/Skillter/ProxyGather/master/proxies/working-proxies-socks4.txt", "socks4"),
+    ("https://raw.githubusercontent.com/Skillter/ProxyGather/master/proxies/working-proxies-socks5.txt", "socks5"),
     # http
     "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
     "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt",
