@@ -153,40 +153,71 @@ def load_pool():
                     pool.add(m.group(1))
     return pool
 
+def test_socks5(ip, port):
+    """完整 SOCKS5 握手：协商无认证 + CONNECT 1.1.1.1:80。"""
+    try:
+        s = socket.create_connection((ip, int(port)), timeout=TIMEOUT)
+        s.settimeout(TIMEOUT)
+        # 握手：VER=5, NMETHODS=1, METHODS=[0x00]
+        s.sendall(bytes([0x05, 0x01, 0x00]))
+        resp = s.recv(2)
+        if len(resp) != 2 or resp[0] != 0x05 or resp[1] != 0x00:
+            s.close()
+            return False
+        # CONNECT 1.1.1.1:80
+        s.sendall(bytes([0x05, 0x01, 0x00, 0x01, 1, 1, 1, 1, 0, 80]))
+        resp = s.recv(10)
+        s.close()
+        return len(resp) >= 2 and resp[0] == 0x05 and resp[1] == 0x00
+    except Exception:
+        return False
+
+def test_socks4(ip, port):
+    """完整 SOCKS4 握手：CONNECT 1.1.1.1:80。"""
+    try:
+        s = socket.create_connection((ip, int(port)), timeout=TIMEOUT)
+        s.settimeout(TIMEOUT)
+        # VER=4, CMD=1, DSTPORT=80, DSTIP=1.1.1.1, USERID empty
+        s.sendall(bytes([0x04, 0x01, 0, 80, 1, 1, 1, 1, 0x00]))
+        resp = s.recv(8)
+        s.close()
+        return len(resp) >= 2 and resp[0] == 0x00 and resp[1] == 0x5A
+    except Exception:
+        return False
+
 def test_proxy(proxy):
-    """TCP + 协议可用性。http/https 走 httpbin 验；socks 只做 TCP（reqwest 运行时自检）。
+    """协议级验证：http/https 走 httpbin；socks4/5 做完整握手。
     返回 (proxy, ms) 或 None。"""
     m = re.match(r"(https?|socks[45])://(\d{1,3}(?:\.\d{1,3}){3}):(\d+)", proxy)
     if not m:
         return None
     scheme, ip, port = m.group(1), m.group(2), m.group(3)
     t0 = time.time()
-    try:
-        s = socket.create_connection((ip, int(port)), timeout=TIMEOUT)
-        s.close()
-    except Exception:
+    ok = False
+    if scheme == "socks5":
+        ok = test_socks5(ip, port)
+    elif scheme == "socks4":
+        ok = test_socks4(ip, port)
+    else:
+        # http/https：TCP + httpbin 实测
+        try:
+            s = socket.create_connection((ip, int(port)), timeout=TIMEOUT)
+            s.close()
+        except Exception:
+            return None
+        try:
+            ph = urllib.request.ProxyHandler({"http": proxy, "https": proxy})
+            opener = urllib.request.build_opener(ph)
+            req = urllib.request.Request("http://httpbin.org/ip", headers={"User-Agent": "Mozilla/5.0"})
+            with opener.open(req, timeout=TIMEOUT) as r:
+                body = r.read(500).decode(errors="ignore")
+                ok = r.status == 200 and "origin" in body
+        except Exception:
+            ok = False
+    if not ok:
         return None
-    tcp_ms = (time.time() - t0) * 1000
-    if tcp_ms > 4000:
-        return None
-    # socks 只验 TCP 连通（应用层由 Tryingopen-2api 运行时健康检查）
-    if scheme in ("socks4", "socks5"):
-        return (proxy, int(tcp_ms))
-    # http/https 走 httpbin 验代理可用性
-    try:
-        ph = urllib.request.ProxyHandler({"http": proxy, "https": proxy})
-        opener = urllib.request.build_opener(ph)
-        req = urllib.request.Request("http://httpbin.org/ip", headers={"User-Agent": "Mozilla/5.0"})
-        t0 = time.time()
-        with opener.open(req, timeout=TIMEOUT) as r:
-            body = r.read(500).decode(errors="ignore")
-            if r.status == 200 and "origin" in body:
-                total_ms = int((time.time() - t0) * 1000 + tcp_ms)
-                if total_ms < 8000:
-                    return (proxy, total_ms)
-    except Exception:
-        pass
-    return None
+    ms = int((time.time() - t0) * 1000)
+    return (proxy, ms) if ms < 10000 else None
 
 def main():
     # 1. 抓新候选
