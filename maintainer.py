@@ -68,6 +68,63 @@ def fetch_tg_channel(channel):
 
 TG_CHANNELS = ["otcfxq"]  # OTC分享频道
 
+def fetch_api_source(url):
+    """API 源：返回 (scheme, ip, port) 列表，处理自带 scheme 前缀的格式。"""
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            ctype = r.headers.get("Content-Type", "")
+            text = r.read().decode(errors="ignore")
+    except Exception as e:
+        print(f"  api fail {url[:60]}: {e}", file=sys.stderr)
+        return []
+    out = []
+    # GeoNode JSON
+    if "geonode" in url:
+        try:
+            import json
+            d = json.loads(text)
+            for item in d.get("data", []):
+                ip, port = item.get("ip", ""), item.get("port", "")
+                protos = item.get("protocols", [])
+                if re.match(r"^\d{1,3}(?:\.\d{1,3}){3}$", ip) and str(port).isdigit():
+                    scheme = "socks5" if "socks5" in protos else "socks4" if "socks4" in protos else "http"
+                    out.append(f"{scheme}://{ip}:{port}")
+            return out
+        except Exception:
+            return []
+    # 文本格式：可能自带 scheme:// 前缀，也可能纯 ip:port
+    default_scheme = scheme_of_source(url)
+    for m in re.finditer(r"(?:(https?|socks[45])://)?(\d{1,3}(?:\.\d{1,3}){3}):(\d{2,5})", text):
+        scheme, ip, port = m.group(1) or default_scheme, m.group(2), int(m.group(3))
+        if ip == "0.0.0.0" or ip.startswith(("127.", "10.", "192.168.")):
+            continue
+        if 1 <= port <= 65535:
+            out.append(f"{scheme}://{ip}:{port}")
+    return out
+
+API_SOURCES = [
+    # ProxyScrape v4（免费、无需 key，按协议分）
+    "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&protocol=http&proxy_format=protocolipport&format=text&timeout=10000",
+    "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&protocol=socks5&proxy_format=protocolipport&format=text&timeout=10000",
+    "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&protocol=socks4&proxy_format=protocolipport&format=text&timeout=10000",
+    # pubproxy
+    "http://pubproxy.com/api/proxy?limit=50&format=txt&type=http",
+    "http://pubproxy.com/api/proxy?limit=50&format=txt&type=socks5",
+    # GeoNode
+    "https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc",
+]
+
+EXTRA_REPOS = [
+    # (url, scheme) — 自带 scheme 前缀的用 fetch_api_source 解析
+    "https://raw.githubusercontent.com/proxyscrape/free-proxy-list/main/proxies/all/data.txt",
+    "https://raw.githubusercontent.com/Moleway/Free-Proxy-List/main/all.txt",
+    "https://raw.githubusercontent.com/Skillter/ProxyGather/refs/heads/master/proxies/working-proxies-all.txt",
+    "https://raw.githubusercontent.com/proxy4parsing/proxy-list/main/http.txt",
+    "https://raw.githubusercontent.com/Ian-Lusule/Proxies/main/proxies/all_proxies.txt",
+    "https://raw.githubusercontent.com/maximilianfeix/proxy-scraper/proxy-list/socks5.txt",
+]
+
 def scheme_of_source(url):
     """从源 URL 推断代理类型。"""
     u = url.lower()
@@ -141,8 +198,24 @@ def main():
         print(f"  [{scheme}] {url[:50]}: {len(found)}", flush=True)
         candidates |= found
 
-    # 1b. TG 频道
+    # 1a. API 源
+    for url in API_SOURCES:
+        found = fetch_api_source(url)
+        print(f"  [api] {url[:55]}: {len(found)}", flush=True)
+        candidates |= set(found)
+
+    # 1b. 额外 GitHub 仓库（自带 scheme 前缀）
+    for url in EXTRA_REPOS:
+        found = fetch_api_source(url)
+        print(f"  [repo] {url[:55]}: {len(found)}", flush=True)
+        candidates |= set(found)
+
+    # 1c. TG 频道
     for ch in TG_CHANNELS:
+        found = fetch_tg_channel(ch)
+        print(f"  [tg:{ch}]: {len(found)}", flush=True)
+        candidates |= set(found)
+    for ch in ["ps_free_proxy_list"]:
         found = fetch_tg_channel(ch)
         print(f"  [tg:{ch}]: {len(found)}", flush=True)
         candidates |= set(found)
