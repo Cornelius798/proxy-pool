@@ -11,6 +11,9 @@ import concurrent.futures, os, re, socket, sys, time, urllib.request
 
 SOURCES = [
     # === 已验证源（优先，对方已做存活检查）===
+    ("https://raw.githubusercontent.com/xyzs996/free-proxy-health-list/main/socks5.txt", "socks5"),
+    ("https://raw.githubusercontent.com/mobinsamin/free-proxy-list/main/protocols/socks5.txt", "socks5"),
+    ("https://raw.githubusercontent.com/azestkingscrown/free_proxy_list/main/working_proxies.txt", "socks5"),
     ("https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/http/raw/all.txt", "http"),
     ("https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks4/raw/all.txt", "socks4"),
     ("https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks5/raw/all.txt", "socks5"),
