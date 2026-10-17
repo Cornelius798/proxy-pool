@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
 Free nodes aggregator - fetches from multiple GitHub sources,
-merges and deduplicates, outputs clash.yaml.
+merges and deduplicates by server:port, outputs clash.yaml.
 """
 
 import sys
 import urllib.request
-import re
+import yaml
 
-# (name, url, format) - format: 'clash' or 'v2ray' or 'base64'
+# (name, url) - all clash YAML format
 SOURCES = [
-    ("free18", "https://ghfast.top/https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/c.yaml", "clash"),
-    ("ermaozi", "https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/clash.yml", "clash"),
-    ("ovmvo", "https://raw.githubusercontent.com/ovmvo/FreeSub/refs/heads/main/sub/permanent/mihomo.yaml", "clash"),
-    ("anaer", "https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml", "clash"),
-    ("peasoft", "https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml", "clash"),
+    ("free18", "https://ghfast.top/https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/c.yaml"),
+    ("ermaozi", "https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/clash.yml"),
+    ("ovmvo", "https://raw.githubusercontent.com/ovmvo/FreeSub/refs/heads/main/sub/permanent/mihomo.yaml"),
+    ("anaer", "https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml"),
+    ("peasoft", "https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml"),
 ]
 
 def fetch(url, timeout=30):
@@ -24,43 +24,86 @@ def fetch(url, timeout=30):
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read().decode('utf-8', errors='ignore')
 
-def extract_proxies_clash(content):
-    """Extract proxy entries from clash YAML (simple regex, MVP)."""
-    # Find the proxies: section and extract individual proxy blocks
-    # This is a simplified parser - for MVP we just return the whole content
-    # TODO: Proper YAML parsing with pyyaml
-    return content
+def get_proxy_key(proxy):
+    """Deduplication key: server:port"""
+    server = proxy.get('server', '')
+    port = proxy.get('port', '')
+    return f"{server}:{port}".lower()
 
 def main():
-    all_contents = []
-    for name, url, fmt in SOURCES:
+    all_proxies = {}  # key -> proxy dict
+    source_stats = {}
+    
+    for name, url in SOURCES:
         try:
             print(f"Fetching {name}...", file=sys.stderr)
             content = fetch(url)
-            if "proxies:" in content or "proxy" in content.lower():
-                print(f"  OK: {len(content)} bytes", file=sys.stderr)
-                all_contents.append((name, content))
-            else:
-                print(f"  SKIP: no proxy content", file=sys.stderr)
+            data = yaml.safe_load(content)
+            
+            proxies = []
+            if isinstance(data, dict):
+                proxies = data.get('proxies', []) or []
+            elif isinstance(data, list):
+                proxies = data
+            
+            count_before = len(all_proxies)
+            for p in proxies:
+                if not isinstance(p, dict):
+                    continue
+                key = get_proxy_key(p)
+                if key and key not in all_proxies:
+                    # Tag with source
+                    p['_source'] = name
+                    all_proxies[key] = p
+            
+            added = len(all_proxies) - count_before
+            source_stats[name] = (len(proxies), added)
+            print(f"  {name}: {len(proxies)} proxies, {added} new", file=sys.stderr)
+            
         except Exception as e:
-            print(f"  FAIL: {e}", file=sys.stderr)
+            print(f"  {name} FAIL: {e}", file=sys.stderr)
+            source_stats[name] = (0, 0)
     
-    if not all_contents:
-        print("ERROR: No sources succeeded", file=sys.stderr)
+    if not all_proxies:
+        print("ERROR: No proxies collected", file=sys.stderr)
         sys.exit(1)
     
-    # MVP: Use the first successful source
-    # TODO: Merge proxies from all sources with deduplication
-    name, content = all_contents[0]
+    # Build output
+    proxies_list = list(all_proxies.values())
+    # Remove internal _source tag before output
+    for p in proxies_list:
+        p.pop('_source', None)
     
-    # Add header comment
-    header = f"# Aggregated by free-nodes-crawler\n# Source: {name}\n# Updated: from GitHub Action\n\n"
+    # Simple proxy-groups for usability
+    proxy_names = [p.get('name', f'proxy-{i}') for i, p in enumerate(proxies_list)]
+    
+    output = {
+        'proxies': proxies_list,
+        'proxy-groups': [
+            {
+                'name': 'auto',
+                'type': 'url-test',
+                'proxies': proxy_names,
+                'url': 'http://www.gstatic.com/generate_204',
+                'interval': 300,
+            },
+            {
+                'name': 'select',
+                'type': 'select',
+                'proxies': ['auto'] + proxy_names,
+            },
+        ],
+    }
     
     with open("clash.yaml", "w", encoding="utf-8") as f:
-        f.write(header + content)
+        f.write("# Aggregated by free-nodes-crawler\n")
+        f.write(f"# Total: {len(proxies_list)} unique proxies\n")
+        for name, (total, added) in source_stats.items():
+            f.write(f"#   {name}: {total} fetched, {added} new\n")
+        f.write("\n")
+        yaml.safe_dump(output, f, allow_unicode=True, sort_keys=False)
     
-    print(f"Wrote clash.yaml from {name} ({len(content)} bytes)")
-    print(f"Total sources succeeded: {len(all_contents)}/{len(SOURCES)}")
+    print(f"\nWrote clash.yaml: {len(proxies_list)} unique proxies", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
