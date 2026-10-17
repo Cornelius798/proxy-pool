@@ -20,8 +20,16 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Run scraper
+      - name: Install dependencies
+        run: pip install pyyaml
+      
+      - name: Aggregate sources
         run: python3 scraper.py
+      
+      - name: Quality check (TCP connectivity)
+        run: python3 check_quality.py
+        # Note: This requires real network egress, works on Actions
+        # but NOT in sandboxed environments with proxy interception
       
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
