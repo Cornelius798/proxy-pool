@@ -15,6 +15,8 @@ SOURCES = [
     ("ovmvo", "https://raw.githubusercontent.com/ovmvo/FreeSub/refs/heads/main/sub/permanent/mihomo.yaml"),
     ("anaer", "https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml"),
     ("peasoft", "https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml"),
+    ("lucas8864", "https://raw.githubusercontent.com/lucas8864/freesub/main/output/clash.yaml"),
+    ("au1rxx", "https://raw.githubusercontent.com/Au1rxx/free-vpn-subscriptions/main/output/clash.yaml"),
 ]
 
 def fetch(url, timeout=30):

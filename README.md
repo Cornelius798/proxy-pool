@@ -6,7 +6,6 @@ Aggregates free proxy nodes from public GitHub sources into a single clash subsc
 
 - free18/v2ray (daily updated, via ghfast.top)
 - ermaozi/get_subscribe
-- MatinGhanbari/v2ray-configs
 - ovmvo/FreeSub
 - lucas8864/freesub
 - peasoft/NoMoreWalls
