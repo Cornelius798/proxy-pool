@@ -1,9 +1,9 @@
 # Aggregated by free-nodes-crawler
-# Total: 849 unique proxies
+# Total: 838 unique proxies
 #   free18: 265 fetched, 64 new
 #   ermaozi: 497 fetched, 98 new
 #   ovmvo: 34 fetched, 7 new
-#   anaer: 567 fetched, 325 new
+#   anaer: 567 fetched, 314 new
 #   peasoft: 125 fetched, 0 new
 #   lucas8864: 616 fetched, 266 new
 #   au1rxx: 1905 fetched, 89 new
@@ -3575,35 +3575,6 @@ proxies:
     headers:
       Host: zheshiscp.com
     path: /77848824
-- name: 美国 111
-  type: vless
-  network: ws
-  server: speed.cloudflare.com
-  port: 443
-  uuid: 7996d412-0b2a-4533-bba1-f7531861f1ec
-  servername: ul-uae2.09vpn.com
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: ul-uae2.09vpn.com
-    path: /vless/
-- name: 美国 113
-  type: vmess
-  network: ws
-  server: speed.cloudflare.com
-  port: 80
-  uuid: 7f52b81e-bc96-4772-8359-b7dacb216ca3
-  skip-cert-verify: true
-  alterId: 0
-  cipher: auto
-  ws-opts:
-    headers:
-      Host: ul-uae2.09vpn.com
-    path: /vmess/
 - name: 美国 115
   type: vless
   network: tcp
@@ -3843,21 +3814,6 @@ proxies:
   ws-opts:
     headers:
       Host: wwwspeedtestnetwhiteberinsistomd6625996s29.elitemizban.ir
-- name: 美国 132
-  type: vless
-  network: ws
-  server: speed.cloudflare.com
-  port: 2096
-  uuid: 8d4d81ee-5928-4617-8726-22a47164e766
-  servername: wwwspeedtestnetwhiteberinsistomd6625996s24.elitemizban.ir
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: wwwspeedtestnetwhiteberinsistomd6625996s24.elitemizban.ir
 - name: 美国 133
   type: vmess
   network: tcp
@@ -3922,49 +3878,6 @@ proxies:
     headers:
       Host: nelly.homes
     path: /linkvws
-- name: 美国 139
-  type: vless
-  network: grpc
-  server: speed.cloudflare.com
-  port: 2087
-  uuid: bb29c155-d55e-4c07-8403-0581e384f7a2
-  servername: a4.bewface-smart.rest
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-- name: 美国 140
-  type: vless
-  network: ws
-  server: speed.cloudflare.com
-  port: 8443
-  uuid: 96a1b724-68d2-4f4d-ab25-38ecd83577bc
-  servername: vpkplldw6.athlenic.info
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: vpkplldw6.athlenic.info
-- name: 美国 141
-  type: vless
-  network: ws
-  server: speed.cloudflare.com
-  port: 2053
-  uuid: ca426e95-9d37-4cca-9521-e61dc50186c2
-  servername: de.gt-ov.com
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: de.gt-ov.com
-    path: /
 - name: 美国 142
   type: vless
   network: ws
@@ -3997,22 +3910,6 @@ proxies:
     headers:
       Host: www.speedtest.net.22.isvpython.online.
     path: /telegram-
-- name: 美国 144
-  type: vless
-  network: ws
-  server: speed.cloudflare.com
-  port: 8880
-  uuid: TELEGRAM-NUFiLTER-4ba1cbd17180
-  servername: banagh.vipnufilter.online
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: banagh.vipnufilter.online
-    path: /telegram-NUFiLTER,telegram-NUFiLTER,telegram-NUFiLTER,telegram-NUFiLTER,telegram-NUFiLTER,telegram-NUFiLTER,telegram-NUFiLTER,telegram-NUFiLTER?ed=8880
 - name: 美国 145
   type: vmess
   network: tcp
@@ -4138,54 +4035,6 @@ proxies:
     headers:
       Host: joinxvproxybedee.ir
     path: /
-- name: 美国 155
-  type: vless
-  network: ws
-  server: speed.cloudflare.com
-  port: 2082
-  uuid: 6bdb153d-c2b6-4552-ada4-164ed36b9acf
-  servername: novinsoft.ir.oradoshop.com.persiangsm.ir.digikala.com.abadis.ir.shad.ir.divar.ir.downloadly.com.aparat.com.cafebazar.ir.varzesh3.com.ninisite.com.abadis.ir.bama.ir.p30download.ir.telewebion.bmi.ir.shad.ir.mayket.com.ninisite.top.
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: novinsoft.ir.oradoshop.com.persiangsm.ir.digikala.com.abadis.ir.shad.ir.divar.ir.downloadly.com.aparat.com.cafebazar.ir.varzesh3.com.ninisite.com.abadis.ir.bama.ir.p30download.ir.telewebion.bmi.ir.shad.ir.mayket.com.ninisite.top.
-    path: /
-- name: 美国 156
-  type: vless
-  network: ws
-  server: speedtest.net
-  port: 80
-  uuid: bc13c046-5de5-4480-9e61-fd1e08ac9e80
-  servername: 6bizaram.azzndagi.net
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: 6bizaram.azzndagi.net
-    path: /telegram-EXPRESSVPN_420,telegram-EXPRESSVPN_420,telegram-EXPRESSVPN_420,telegram-EXPRESSVPN_420,telegram-EXPRESSVPN_420,telegram-EXPRESSVPN_420,telegram-EXPRESSVPN_420,telegram-EXPRESSVPN_420?ed=8080
-- name: 美国 157
-  type: vless
-  network: ws
-  server: speed.cloudflare.com
-  port: 2083
-  uuid: 693ec50b-2056-4585-88ba-19c9c915cf72
-  servername: beat.miracletaxbits.top.
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: beat.miracletaxbits.top.
-    path: /2083/
 - name: 美国 158
   type: vless
   network: ws
@@ -4234,19 +4083,6 @@ proxies:
     headers:
       Host: 49.org
     path: /telegram-v2safee,telegram-v2safee,telegram-v2safee,telegram-v2safee,telegram-v2safee,telegram-v2safee,telegram-v2safee,telegram-v2safee,telegram-v2safee,telegram-v2safee,telegram-v2safee,telegram-v2safee?ed=2095
-- name: 美国 161
-  type: vmess
-  network: ws
-  server: speed.cloudflare.com
-  port: 2095
-  uuid: f4f01d19-1782-4b85-9317-0d3cee0f91e2
-  skip-cert-verify: true
-  alterId: 0
-  cipher: auto
-  ws-opts:
-    headers:
-      Host: panel.seyyedmtmodidandansax.blog.
-    path: /Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt-Seyyedmt?ed=1024
 - name: 美国 162
   type: vmess
   network: ws
@@ -10377,8 +10213,6 @@ proxy-groups:
   - 美国 108
   - 美国 109
   - 美国 110
-  - 美国 111
-  - 美国 113
   - 美国 115
   - 美国 116
   - 美国 117
@@ -10396,19 +10230,14 @@ proxy-groups:
   - 美国 129
   - 美国 130
   - 美国 131
-  - 美国 132
   - 美国 133
   - 美国 134
   - 美国 135
   - 美国 136
   - 美国 137
   - 美国 138
-  - 美国 139
-  - 美国 140
-  - 美国 141
   - 美国 142
   - 美国 143
-  - 美国 144
   - 美国 145
   - 美国 146
   - 美国 147
@@ -10419,13 +10248,9 @@ proxy-groups:
   - 美国 152
   - 美国 153
   - 美国 154
-  - 美国 155
-  - 美国 156
-  - 美国 157
   - 美国 158
   - 美国 159
   - 美国 160
-  - 美国 161
   - 美国 162
   - 美国 163
   - 美国 164
@@ -11232,8 +11057,6 @@ proxy-groups:
   - 美国 108
   - 美国 109
   - 美国 110
-  - 美国 111
-  - 美国 113
   - 美国 115
   - 美国 116
   - 美国 117
@@ -11251,19 +11074,14 @@ proxy-groups:
   - 美国 129
   - 美国 130
   - 美国 131
-  - 美国 132
   - 美国 133
   - 美国 134
   - 美国 135
   - 美国 136
   - 美国 137
   - 美国 138
-  - 美国 139
-  - 美国 140
-  - 美国 141
   - 美国 142
   - 美国 143
-  - 美国 144
   - 美国 145
   - 美国 146
   - 美国 147
@@ -11274,13 +11092,9 @@ proxy-groups:
   - 美国 152
   - 美国 153
   - 美国 154
-  - 美国 155
-  - 美国 156
-  - 美国 157
   - 美国 158
   - 美国 159
   - 美国 160
-  - 美国 161
   - 美国 162
   - 美国 163
   - 美国 164
