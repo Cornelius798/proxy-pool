@@ -74,18 +74,35 @@ def main():
                 proxies = data
             
             count_before = len(all_proxies)
+            unmatched = []  # For GeoIP fallback
             for p in proxies:
                 if not isinstance(p, dict):
                     continue
-                # Region filter
+                # Region filter: name match first, GeoIP fallback later
                 pname = p.get('name', '')
                 if not match_region(pname):
+                    unmatched.append(p)
                     continue
                 key = get_proxy_key(p)
                 if key and key not in all_proxies:
                     # Tag with source
                     p['_source'] = name
                     all_proxies[key] = p
+
+            # GeoIP fallback for name-unmatched nodes
+            if unmatched:
+                try:
+                    from geoip import filter_by_geoip
+                    print(f"  {name}: {len(unmatched)} name-unmatched, trying GeoIP...",
+                          file=sys.stderr)
+                    geo_kept = filter_by_geoip(unmatched)
+                    for p in geo_kept:
+                        key = get_proxy_key(p)
+                        if key and key not in all_proxies:
+                            p['_source'] = name
+                            all_proxies[key] = p
+                except Exception as e:
+                    print(f"  {name}: GeoIP fallback failed: {e}", file=sys.stderr)
             
             added = len(all_proxies) - count_before
             source_stats[name] = (len(proxies), added)
