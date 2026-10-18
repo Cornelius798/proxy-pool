@@ -1,22 +1,20 @@
-# free-nodes-crawler
+# proxy-pool
 
-Aggregates free proxy nodes from public GitHub sources into a single clash subscription.
+免费节点聚合池 - 每日自动更新。
 
-## Sources
+## 订阅地址
 
-- free18/v2ray (daily updated, via ghfast.top)
-- ermaozi/get_subscribe
-- ovmvo/FreeSub
-- lucas8864/freesub
-- peasoft/NoMoreWalls
-- Au1rxx/free-vpn-subscriptions
-- anaer/Sub
+- Clash: `https://cornelius798.github.io/proxy-pool/clash.yaml`
 
-## Usage
+## 说明
 
-The aggregated subscription is available at:
-- `https://cornelius798.github.io/free-nodes-crawler/clash.yaml`
+- 每天 02:00 UTC 自动抓取 7 个 GitHub 免费节点源
+- 按 server:port 去重
+- 只保留香港、日本、新加坡、台湾、美国节点（名字匹配 + GeoIP 兜底）
+- TCP 连通性检测，踢掉死节点
+- 按延迟排序
 
-## How it works
+## 历史
 
-GitHub Action runs daily, fetches all sources, merges and deduplicates nodes, outputs `clash.yaml` to GitHub Pages.
+2026-10-14 前：手工验证代理池（已停用，相关文件保留在 `legacy/`）
+2026-10-18 起：自动聚合爬虫
