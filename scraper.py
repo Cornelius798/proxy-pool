@@ -33,6 +33,23 @@ def match_region(name):
     nl = name.lower()
     return any(kw in nl for kw in REGION_KEYWORDS)
 
+# Junk server denylist: domains/IPs that are not real proxies
+# (speed test endpoints, examples, placeholders)
+JUNK_SERVERS = [
+    "speed.cloudflare.com",
+    "speedtest.net",
+    "example.com",
+    "localhost",
+    "127.0.0.1",
+]
+
+def is_junk(server):
+    """Check if server is a known junk/non-proxy endpoint."""
+    if not server:
+        return True
+    sl = server.lower().strip()
+    return any(j in sl for j in JUNK_SERVERS)
+
 # (name, url) - all clash YAML format
 SOURCES = [
     ("free18", "https://ghfast.top/https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/c.yaml"),
@@ -78,6 +95,9 @@ def main():
             for p in proxies:
                 if not isinstance(p, dict):
                     continue
+                # Junk filter
+                if is_junk(p.get('server', '')):
+                    continue
                 # Region filter: name match first, GeoIP fallback later
                 pname = p.get('name', '')
                 if not match_region(pname):
@@ -97,6 +117,8 @@ def main():
                           file=sys.stderr)
                     geo_kept = filter_by_geoip(unmatched)
                     for p in geo_kept:
+                        if is_junk(p.get('server', '')):
+                            continue
                         key = get_proxy_key(p)
                         if key and key not in all_proxies:
                             p['_source'] = name
