@@ -8,6 +8,31 @@ import sys
 import urllib.request
 import yaml
 
+# Region filter: only keep nodes from these regions (matched against node name).
+# Empty list = no filtering.
+# 香港 Hong Kong | 日本 Japan | 新加坡 Singapore | 台湾 Taiwan | 美国 USA
+REGION_KEYWORDS = [
+    # Hong Kong
+    "香港", "hongkong", "hong kong", "hk",
+    # Japan
+    "日本", "japan", "jp", "东京", "tokyo", "大阪", "osaka",
+    # Singapore
+    "新加坡", "singapore", "sg", "狮城",
+    # Taiwan
+    "台湾", "taiwan", "tw", "台北", "taipei",
+    # USA
+    "美国", "united states", "usa", "us",
+    "洛杉矶", "los angeles", "旧金山", "san francisco", "纽约", "new york",
+    "西雅图", "seattle", "芝加哥", "chicago", "达拉斯", "dallas",
+]
+
+def match_region(name):
+    """Check if node name matches any wanted region keyword."""
+    if not REGION_KEYWORDS:
+        return True
+    nl = name.lower()
+    return any(kw in nl for kw in REGION_KEYWORDS)
+
 # (name, url) - all clash YAML format
 SOURCES = [
     ("free18", "https://ghfast.top/https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/c.yaml"),
@@ -51,6 +76,10 @@ def main():
             count_before = len(all_proxies)
             for p in proxies:
                 if not isinstance(p, dict):
+                    continue
+                # Region filter
+                pname = p.get('name', '')
+                if not match_region(pname):
                     continue
                 key = get_proxy_key(p)
                 if key and key not in all_proxies:
