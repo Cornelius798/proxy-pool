@@ -28,6 +28,12 @@ SOURCES = {
         "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&protocol=socks5&proxy_format=ipport&format=text",
         "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/socks5.txt",
         "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt",
+        "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt",
+        "https://raw.githubusercontent.com/maximilianfeix/free-proxy-list/main/us.txt",
+        "https://raw.githubusercontent.com/maximilianfeix/free-proxy-list/main/jp.txt",
+        "https://raw.githubusercontent.com/maximilianfeix/free-proxy-list/main/sg.txt",
+        "https://raw.githubusercontent.com/maximilianfeix/free-proxy-list/main/hk.txt",
+        "https://raw.githubusercontent.com/maximilianfeix/free-proxy-list/main/tw.txt",
     ],
     "http": [
         "https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/http/raw/all.txt",
@@ -35,6 +41,7 @@ SOURCES = {
         "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&protocol=http&proxy_format=ipport&format=text",
         "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/http.txt",
         "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt",
+        "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt",
     ],
 }
 
