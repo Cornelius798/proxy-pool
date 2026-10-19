@@ -25,10 +25,16 @@ SOURCES = {
     "socks5": [
         "https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/socks5/raw/all.txt",
         "https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS5_RAW.txt",
+        "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&protocol=socks5&proxy_format=ipport&format=text",
+        "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/socks5.txt",
+        "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt",
     ],
     "http": [
         "https://raw.githubusercontent.com/ClearProxy/checked-proxy-list/main/http/raw/all.txt",
         "https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt",
+        "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&protocol=http&proxy_format=ipport&format=text",
+        "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols/http.txt",
+        "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/http/data.txt",
     ],
 }
 
