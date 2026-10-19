@@ -7,12 +7,17 @@ Unlike Clash nodes (vmess/vless/trojan), these protocols have
 simple handshakes that can be fully verified.
 """
 
+import json
 import socket
 import sys
+import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
-# Target countries (ISO codes)
+# Target countries (ISO codes) — user requirement: HK/JP/SG/TW/US only.
+# Raw IP:PORT lists carry no node names, so region filtering is done
+# via GeoIP (ip-api.com batch API: free, no key, 100 IPs per request,
+# 45 requests/minute on the free tier).
 TARGET_COUNTRIES = {"HK", "JP", "SG", "TW", "US"}
 
 # Public proxy list sources (raw IP:PORT, one per line)
@@ -84,6 +89,61 @@ def test_http(proxy, timeout=10):
     except Exception:
         return False
 
+def batch_geoip(ips):
+    """Query ip-api.com batch endpoint. Returns {ip: country_code}.
+
+    Returns an empty dict only if EVERY batch failed (service down);
+    partial results are kept as-is.
+    """
+    result = {}
+    any_success = False
+    batches = [ips[i:i + 100] for i in range(0, len(ips), 100)]
+    for n, batch in enumerate(batches):
+        try:
+            data = json.dumps(batch).encode()
+            req = urllib.request.Request(
+                "http://ip-api.com/batch?fields=query,countryCode,status",
+                data=data,
+                headers={"Content-Type": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                items = json.loads(resp.read())
+                for item in items:
+                    if item.get("status") == "success":
+                        result[item["query"]] = item.get("countryCode", "")
+                        any_success = True
+        except Exception as e:
+            print(f"  geoip batch {n + 1}/{len(batches)} failed: {e}",
+                  file=sys.stderr)
+        # Stay under the free tier's 45 req/min even for large lists
+        if n < len(batches) - 1:
+            time.sleep(1.5)
+    if not any_success:
+        print("  WARNING: GeoIP service unreachable, "
+              "region filter disabled for this run", file=sys.stderr)
+        return None
+    return result
+
+
+def filter_by_region(working):
+    """Keep only proxies in TARGET_COUNTRIES via GeoIP.
+
+    `working` is a list of (proxy, ptype) with proxy as 'ip:port'.
+    Fail-open: if GeoIP is unreachable, return everything with a warning
+    (an empty pool would break downstream consumers).
+    """
+    ips = sorted(set(p.rsplit(':', 1)[0] for p, _ in working))
+    print(f"GeoIP region filter: {len(ips)} unique IPs...", file=sys.stderr)
+    ip_country = batch_geoip(ips)
+    if ip_country is None:
+        return working
+    kept = [(p, t) for p, t in working
+            if ip_country.get(p.rsplit(':', 1)[0], "") in TARGET_COUNTRIES]
+    print(f"Region filter kept {len(kept)}/{len(working)} "
+          f"(countries: {sorted(TARGET_COUNTRIES)})", file=sys.stderr)
+    return kept
+
+
 def check_proxy(args):
     """Test a single proxy. Returns (proxy, type) if working, else None."""
     proxy, ptype = args
@@ -117,10 +177,12 @@ def main():
                 working.append(r)
     
     print(f"Working: {len(working)}/{len(all_proxies)}", file=sys.stderr)
-    
-    # TODO: GeoIP region filter (needs IP geolocation)
-    # For now, output all working proxies
-    
+
+    # Region filter: raw IP:PORT lists have no node names, so GeoIP is the
+    # only way to enforce the HK/JP/SG/TW/US requirement.
+    working = filter_by_region(working)
+    print(f"After region filter: {len(working)}", file=sys.stderr)
+
     # Build Clash YAML output
     proxies_yaml = []
     for i, (proxy, ptype) in enumerate(working):
@@ -157,7 +219,8 @@ def main():
     }
     
     with open("clash.yaml", "w") as f:
-        f.write("# Simple proxy pool (socks5/http), handshake-verified\n")
+        f.write("# Simple proxy pool (socks5/http), handshake-verified, "
+                "HK/JP/SG/TW/US only\n")
         f.write(f"# Working: {len(working)}\n\n")
         yaml.safe_dump(output, f, sort_keys=False)
     
