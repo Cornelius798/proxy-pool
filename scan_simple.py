@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 """
 Simple proxy scanner: fetches SOCKS5/HTTP/HTTPS proxy lists,
-tests real handshakes, filters by region, outputs clash.yaml.
+tests real handshakes AND full TLS tunnels, filters by region,
+outputs clash.yaml.
 
-Unlike Clash nodes (vmess/vless/trojan), these protocols have
-simple handshakes that can be fully verified.
+Verification is two-stage (upgraded 2026-10-20): a bare handshake
+is not enough — most "working" free proxies grant CONNECT but never
+deliver a byte (measured: 288 handshake-verified nodes, only 5 could
+complete a TLS tunnel to the real workload host). A node counts as
+working only if a TLS handshake through it succeeds.
 """
 
 import json
 import socket
+import ssl
 import sys
 import time
 import urllib.request
@@ -102,6 +107,91 @@ def test_http(proxy, timeout=10):
     except Exception:
         return False
 
+# Tunnel verification target: the pool's real workload host. A proxy
+# that cannot carry traffic to this host is useless to the gateway,
+# regardless of how healthy its handshake looks.
+TUNNEL_HOST = "opencode.ai"
+TUNNEL_PORT = 443
+
+_TLS_CTX = ssl.create_default_context()
+_TLS_CTX.check_hostname = False
+_TLS_CTX.verify_mode = ssl.CERT_NONE  # tunnel liveness only; the gateway verifies certs itself
+
+
+def _socks5_tunnel(proxy, timeout=12):
+    """Full SOCKS5 tunnel: greeting + CONNECT (domain) + TLS handshake."""
+    ip, port = proxy.rsplit(':', 1)
+    s = socket.create_connection((ip, int(port)), timeout=6)
+    try:
+        s.settimeout(timeout)
+        s.sendall(b'\x05\x01\x00')
+        r = s.recv(2)
+        if len(r) != 2 or r[1] != 0x00:
+            return False
+        host = TUNNEL_HOST.encode()
+        s.sendall(b'\x05\x01\x00\x03' + bytes([len(host)]) + host +
+                  TUNNEL_PORT.to_bytes(2, 'big'))
+        r = s.recv(4)
+        if len(r) < 4 or r[1] != 0x00:
+            return False
+        atyp = r[3]
+        if atyp == 0x01:
+            s.recv(6)
+        elif atyp == 0x03:
+            d = s.recv(1)
+            if not d:
+                return False
+            s.recv(d[0] + 2)
+        elif atyp == 0x04:
+            s.recv(18)
+        else:
+            return False
+        tls = _TLS_CTX.wrap_socket(s, server_hostname=TUNNEL_HOST)
+        tls.close()
+        return True
+    except Exception:
+        try:
+            s.close()
+        except Exception:
+            pass
+        return False
+
+
+def _http_tunnel(proxy, timeout=12):
+    """Full HTTP tunnel: CONNECT + TLS handshake."""
+    ip, port = proxy.rsplit(':', 1)
+    s = socket.create_connection((ip, int(port)), timeout=6)
+    try:
+        s.settimeout(timeout)
+        s.sendall(f'CONNECT {TUNNEL_HOST}:{TUNNEL_PORT} HTTP/1.1\r\n'
+                  f'Host: {TUNNEL_HOST}:{TUNNEL_PORT}\r\n\r\n'.encode())
+        buf = b''
+        while b'\r\n\r\n' not in buf:
+            chunk = s.recv(4096)
+            if not chunk:
+                return False
+            buf += chunk
+            if len(buf) > 16384:
+                return False
+        if ' 200' not in buf.split(b'\r\n', 1)[0].decode(errors='ignore'):
+            return False
+        tls = _TLS_CTX.wrap_socket(s, server_hostname=TUNNEL_HOST)
+        tls.close()
+        return True
+    except Exception:
+        try:
+            s.close()
+        except Exception:
+            pass
+        return False
+
+
+def check_tunnel(args):
+    """Stage 2: real tunnel test. Returns (proxy, type) if it carries TLS."""
+    proxy, ptype = args
+    ok = _socks5_tunnel(proxy) if ptype == 'socks5' else _http_tunnel(proxy)
+    return (proxy, ptype) if ok else None
+
 def batch_geoip(ips):
     """Query ip-api.com batch endpoint. Returns {ip: country_code}.
 
@@ -188,8 +278,20 @@ def main():
         for r in results:
             if r:
                 working.append(r)
-    
+
     print(f"Working: {len(working)}/{len(all_proxies)}", file=sys.stderr)
+
+    # Stage 2: tunnel verification (30 concurrent). A handshake means the
+    # proxy answers; only a completed TLS tunnel means it can carry traffic.
+    tunneling = []
+    with ThreadPoolExecutor(max_workers=30) as ex:
+        results = ex.map(check_tunnel, working)
+        for r in results:
+            if r:
+                tunneling.append(r)
+    working = tunneling
+    print(f"Tunnel-verified: {len(working)} (of handshake-passing)",
+          file=sys.stderr)
 
     # Region filter: raw IP:PORT lists have no node names, so GeoIP is the
     # only way to enforce the HK/JP/SG/TW/US requirement.
@@ -232,7 +334,8 @@ def main():
     }
     
     with open("clash.yaml", "w") as f:
-        f.write("# Simple proxy pool (socks5/http), handshake-verified, "
+        f.write("# Simple proxy pool (socks5/http), tunnel-verified "
+                "(TLS handshake to opencode.ai through each node), "
                 "HK/JP/SG/TW/US only\n")
         f.write(f"# Working: {len(working)}\n\n")
         yaml.safe_dump(output, f, sort_keys=False)
