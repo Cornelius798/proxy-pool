@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: pip install pyyaml
       
-      - name: Scan and handshake-verify proxies
+      - name: Scan and tunnel-verify proxies
         run: python3 scan_simple.py
       
       - name: Commit and push
