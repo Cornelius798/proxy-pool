@@ -121,8 +121,8 @@ _TLS_CTX.verify_mode = ssl.CERT_NONE  # tunnel liveness only; the gateway verifi
 def _socks5_tunnel(proxy, timeout=12):
     """Full SOCKS5 tunnel: greeting + CONNECT (domain) + TLS handshake."""
     ip, port = proxy.rsplit(':', 1)
-    s = socket.create_connection((ip, int(port)), timeout=6)
     try:
+        s = socket.create_connection((ip, int(port)), timeout=6)
         s.settimeout(timeout)
         s.sendall(b'\x05\x01\x00')
         r = s.recv(2)
@@ -160,8 +160,8 @@ def _socks5_tunnel(proxy, timeout=12):
 def _http_tunnel(proxy, timeout=12):
     """Full HTTP tunnel: CONNECT + TLS handshake."""
     ip, port = proxy.rsplit(':', 1)
-    s = socket.create_connection((ip, int(port)), timeout=6)
     try:
+        s = socket.create_connection((ip, int(port)), timeout=6)
         s.settimeout(timeout)
         s.sendall(f'CONNECT {TUNNEL_HOST}:{TUNNEL_PORT} HTTP/1.1\r\n'
                   f'Host: {TUNNEL_HOST}:{TUNNEL_PORT}\r\n\r\n'.encode())
