@@ -1,0 +1,52 @@
+# Runner egress freshness probe for opencode (ONE manual run, ONE request).
+# Purpose: check whether a GitHub Actions runner's egress IP still has opencode
+# free-tier quota (200 = fresh, 429 = burned like the shared pools).
+# Trigger: manually only (workflow_dispatch). No schedule, no loop.
+# NOTE: local preparation only — NOT pushed anywhere. Push only on explicit approval.
+name: runner-egress-probe
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Probe opencode via runner egress (one request)
+        run: |
+          cat > /tmp/probe.mjs <<'EOF'
+          const hex = [...crypto.getRandomValues(new Uint8Array(6))].map(b => b.toString(16).padStart(2, '0')).join('');
+          const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+          const b62 = Array.from(crypto.getRandomValues(new Uint8Array(14))).map(b => alphabet[b % 62]).join('');
+          const session = 'ses_' + hex + b62;
+          const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('opencode-project\0' + session));
+          const project = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
+          const egress = await (await fetch('https://ifconfig.me/ip')).text();
+          console.log('egress:', egress.trim());
+          const res = await fetch('https://opencode.ai/inference/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'User-Agent': 'opencode/latest/2.1.4/cli',
+              'Authorization': 'Bearer public',
+              'Accept': 'application/json, text/event-stream',
+              'x-opencode-client': 'cli',
+              'x-opencode-session': session,
+              'x-opencode-session-id': session,
+              'x-session-affinity': session,
+              'X-Session-Id': session,
+              'x-opencode-project': project,
+            },
+            body: JSON.stringify({
+              model: 'big-pickle',
+              messages: [{ role: 'user', content: '1+1等于几？只回一个数字。' }],
+              stream: true,
+              tools: [{ type: 'function', function: { name: 'read', description: 'Read a file', parameters: { type: 'object', properties: { filePath: { type: 'string' } } } } }],
+              max_tokens: 64,
+            }),
+          });
+          console.log('HTTP:', res.status);
+          console.log('BODY:', (await res.text()).slice(0, 500));
+          EOF
+          bun /tmp/probe.mjs
