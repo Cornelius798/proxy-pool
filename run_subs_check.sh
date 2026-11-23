@@ -22,7 +22,7 @@ OUTDIR="$2"
 LOG="$3"
 TIMEOUT_MIN="${4:-45}"
 
-./subs-check -f "$CONFIG" > "$LOG" 2>&1 &
+.bin/subs-check -f "$CONFIG" > "$LOG" 2>&1 &
 PID=$!
 echo "subs-check started (pid $PID) with $CONFIG"
 
