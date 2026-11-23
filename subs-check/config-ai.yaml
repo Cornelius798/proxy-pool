@@ -1,0 +1,42 @@
+# subs-check config: AI-tier run (liveness only, NO speed test).
+# Alive check GETs https://opencode.ai through each node; any 2xx =
+# the node can reach opencode.ai, so survivors are the AI tier.
+# Speed test is DISABLED by leaving speed-test-url empty (see
+# config-full.yaml for the mechanism). Everything else matches the
+# full-pool run except the alive URL and the output directory.
+print-progress: false
+concurrent: 50
+media-concurrent: 20
+speed-concurrent: 20
+check-interval: 10080
+success-limit: 0
+timeout: 5000
+alive-test-url: https://opencode.ai
+speed-test-url: ""
+min-speed: 512
+download-timeout: 10
+download-mb: 20
+total-speed-limit: 0
+listen-port: ":8199"
+rename-node: false
+node-prefix: ""
+media-check: false
+media-check-timeout: 5
+keep-days: 0
+output-dir: "./output-ai"
+enable-web-ui: false
+api-key: ""
+sub-store-port: ""
+save-method: local
+sub-urls-retry: 3
+sub-urls-concurrent: 20
+sub-urls-get-ua: "clash.meta"
+github-proxy: ""
+proxy: ""
+success-rate: 0
+ipv6: true
+sub-urls:
+  - "https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/clash.yml"
+  - "https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml"
+  - "https://raw.githubusercontent.com/ripaojiedian/freenode/main/clash"
+  - "https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity.yml"

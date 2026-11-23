@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 """
-Simple proxy scanner: fetches HTTP proxy lists and Clash
-subscriptions, tests real handshakes AND full TLS tunnels, filters by
-region, outputs tiered clash.yaml files (full / residential / AI).
+HTTP forward-proxy pipeline (one input of the tiered pool).
+
+Fetches raw HTTP proxy lists, tests real handshakes AND full TLS
+tunnels to opencode.ai, filters by region, and writes the surviving
+nodes to http_nodes.json for tier_outputs.py to merge with the
+subs-check subscription-node results.
+
+Subscription nodes (VLESS/VMess/SS/Trojan/...) are NOT tested here —
+they go through subs-check (mihomo core) in the workflow. This script
+only handles plain HTTP CONNECT proxies.
 
 Verification is two-stage (upgraded 2026-10-20): a bare handshake
 is not enough — most "working" free proxies grant CONNECT but never
@@ -10,8 +17,7 @@ deliver a byte (measured: 288 handshake-verified nodes, only 5 could
 complete a TLS tunnel to the real workload host). A node counts as
 working only if a TLS handshake through it succeeds.
 
-No speed test is done in this run, so there is no speed tier: the
-"fast" tier of subs-check-style output is intentionally not claimed.
+No speed test is done anywhere in this run.
 """
 
 import json
@@ -20,7 +26,6 @@ import ssl
 import sys
 import time
 import urllib.request
-import yaml
 from concurrent.futures import ThreadPoolExecutor
 
 # Target countries (ISO codes) — user requirement: HK/JP/SG/TW/US only.
@@ -42,23 +47,12 @@ SOURCES = {
     ],
 }
 
-# Public Clash subscription sources (YAML with a `proxies:` list).
-# Verified 2026-11-23: all four return HTTP 200 and parse to a Clash
-# YAML document with a `proxies` list. Only http entries are taken
-# (server+port) — the pipeline cannot test VLESS/VMess/SS/Trojan/
-# SOCKS5/etc. Per-source http yield on 2026-11-23:
-#   ermaozi/get_subscribe: 87 http (its 9 socks5 nodes are skipped)
-#   anaer/Sub: 0 (2144 nodes, all vmess/vless/trojan/ss)
-#   ripaojiedian/freenode: 0 (24 nodes, all vless/ss/trojan/...)
-#   mahdibland/ShadowsocksAggregator: 0 (201 nodes, all ss/trojan/vmess)
-# All four are live aggregators whose mix changes daily; the parser
-# takes whatever http each run contains.
-SUBSCRIPTION_SOURCES = [
-    "https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/clash.yml",
-    "https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml",
-    "https://raw.githubusercontent.com/ripaojiedian/freenode/main/clash",
-    "https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity.yml",
-]
+# Subscription sources moved to subs-check (subs-check/config-*.yaml)
+# 2026-11-23: subscription nodes (VLESS/VMess/SS/Trojan/...) are
+# tested by subs-check through the mihomo core, not by this script.
+# Verified sources (all return HTTP 200 with a Clash YAML proxies
+# list): ermaozi/get_subscribe, anaer/Sub, ripaojiedian/freenode,
+# mahdibland/ShadowsocksAggregator. See subs-check/config-full.yaml.
 
 def fetch_list(url, timeout=30):
     """Fetch a proxy list, return list of ip:port strings."""
@@ -86,11 +80,11 @@ def fetch_list(url, timeout=30):
         return []
 
 def _resolve_server(server):
-    """Resolve a subscription node server to an IPv4 literal.
+    """Resolve a node server to an IPv4 literal.
 
-    The pipeline is ip:port throughout (handshake, tunnel, GeoIP).
-    Most subscription nodes already use IP literals; resolve the
-    occasional domain via DNS and skip the node if it does not resolve.
+    Used by tier_outputs.py for subscription nodes whose server is a
+    domain. Most nodes already use IP literals; resolve the occasional
+    domain via DNS and return None if it does not resolve.
     """
     try:
         socket.inet_aton(server)
@@ -106,45 +100,6 @@ def _resolve_server(server):
         pass
     return None
 
-
-def fetch_subscription(url, timeout=30):
-    """Fetch a Clash subscription, return [(ip:port, type)] for
-    http nodes only. Other types (vless/vmess/ss/trojan/socks5/...)
-    are skipped: the pipeline only tests HTTP proxies."""
-    try:
-        req = urllib.request.Request(url, headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-        })
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            doc = yaml.safe_load(resp.read().decode('utf-8', errors='ignore'))
-        if not isinstance(doc, dict) or not isinstance(doc.get("proxies"), list):
-            print(f"  SKIP {url}: not a Clash YAML with a proxies list",
-                  file=sys.stderr)
-            return []
-        result = []
-        for node in doc["proxies"]:
-            if not isinstance(node, dict):
-                continue
-            if node.get("type") != "http":
-                continue
-            server = node.get("server")
-            port = node.get("port")
-            if not server:
-                continue
-            try:
-                port = int(port)
-            except (TypeError, ValueError):
-                continue
-            if not 1 <= port <= 65535:
-                continue
-            ip = _resolve_server(str(server))
-            if ip is None:
-                continue
-            result.append((f"{ip}:{port}", node["type"]))
-        return result
-    except Exception as e:
-        print(f"  FAIL {url}: {e}", file=sys.stderr)
-        return []
 
 def test_http(proxy, timeout=10):
     """Test HTTP proxy with CONNECT. Returns True if working."""
@@ -293,50 +248,9 @@ def check_proxy(args):
     return (proxy, ptype) if test_http(proxy) else None
 
 
-def write_clash_yaml(path, working, tier_note):
-    """Write one tier file: proxies + an auto url-test group.
-
-    `working` is a list of (proxy, ptype) with proxy as 'ip:port'
-    (http only since 2026-11-23). The header keeps the original pool
-    description and notes the tier.
-    """
-    proxies_yaml = []
-    for i, (proxy, ptype) in enumerate(working):
-        ip, port = proxy.rsplit(':', 1)
-        proxies_yaml.append({
-            'name': f"{ptype}_{i}",
-            'type': 'http',
-            'server': ip,
-            'port': int(port),
-        })
-
-    proxy_names = [p['name'] for p in proxies_yaml]
-    output = {
-        'proxies': proxies_yaml,
-        'proxy-groups': [
-            {
-                'name': 'auto',
-                'type': 'url-test',
-                'proxies': proxy_names,
-                'url': 'http://www.gstatic.com/generate_204',
-                'interval': 300,
-            },
-        ],
-    }
-
-    with open(path, "w") as f:
-        f.write("# Simple proxy pool (http), tunnel-verified "
-                "(TLS handshake to opencode.ai through each node), "
-                "HK/JP/SG/TW/US only\n")
-        f.write(f"# Tier: {tier_note}\n")
-        f.write(f"# Working: {len(working)}\n\n")
-        yaml.safe_dump(output, f, sort_keys=False)
-
-    print(f"Wrote {path}: {len(proxies_yaml)} verified proxies",
-          file=sys.stderr)
-
 def main():
-    # Fetch all lists
+    # Fetch all raw HTTP lists (subscription nodes go through
+    # subs-check, not this script).
     all_proxies = []  # (proxy, type)
     seen = set()
     for ptype, urls in SOURCES.items():
@@ -346,15 +260,6 @@ def main():
                 if proxy not in seen:
                     seen.add(proxy)
                     all_proxies.append((proxy, ptype))
-
-    # Subscription sources: Clash YAML feeds; only http nodes enter the
-    # same pipeline (dedupe, handshake, tunnel, region).
-    for url in SUBSCRIPTION_SOURCES:
-        print(f"Fetching subscription: {url[:60]}...", file=sys.stderr)
-        for proxy, ptype in fetch_subscription(url):
-            if proxy not in seen:
-                seen.add(proxy)
-                all_proxies.append((proxy, ptype))
 
     print(f"\nTotal unique: {len(all_proxies)}, testing handshakes...",
           file=sys.stderr)
@@ -386,20 +291,23 @@ def main():
     working, geo = filter_by_region(working)
     print(f"After region filter: {len(working)}", file=sys.stderr)
 
-    # Tiered Clash YAML outputs (no speed tier — the run does no speed
-    # test, so no speed label is claimed).
-    write_clash_yaml("clash.yaml", working,
-                     "full pool: all tunnel-verified nodes")
-    residential = [(p, t) for p, t in working
-                   if is_residential(geo.get(p.rsplit(':', 1)[0]))]
-    write_clash_yaml("residential.yaml", residential,
-                     "residential subset: hosting=false and mobile=false "
-                     "per ip-api.com (home broadband exits only)")
-    # AI tier: every node in this run already passed the TLS tunnel
-    # check to opencode.ai, so the AI set is identical to the full pool.
-    write_clash_yaml("ai.yaml", working,
-                     "AI tier: identical to the full pool — every node "
-                     "here passed the TLS tunnel check to opencode.ai")
+    # Emit the surviving HTTP nodes as full node dicts for
+    # tier_outputs.py. Every node here passed the TLS tunnel check to
+    # opencode.ai, so tier_outputs.py puts them in both the full tier
+    # and the AI tier (deduped against the subs-check results).
+    nodes = []
+    for i, (proxy, ptype) in enumerate(working):
+        ip, port = proxy.rsplit(':', 1)
+        nodes.append({
+            'name': f"{ptype}_{i}",
+            'type': 'http',
+            'server': ip,
+            'port': int(port),
+        })
+    with open("http_nodes.json", "w") as f:
+        json.dump(nodes, f)
+    print(f"Wrote http_nodes.json: {len(nodes)} verified HTTP nodes",
+          file=sys.stderr)
 
 if __name__ == "__main__":
     main()
