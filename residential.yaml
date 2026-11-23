@@ -1,0 +1,46 @@
+# Simple proxy pool (http), tunnel-verified (TLS handshake to opencode.ai through each node), HK/JP/SG/TW/US only
+# Tier: residential subset: hosting=false and mobile=false per ip-api.com (home broadband exits only)
+# Working: 7
+
+proxies:
+- name: http_0
+  type: http
+  server: 61.216.156.222
+  port: 60808
+- name: http_1
+  type: http
+  server: 209.18.49.62
+  port: 8080
+- name: http_2
+  type: http
+  server: 216.125.18.67
+  port: 3128
+- name: http_3
+  type: http
+  server: 50.238.106.26
+  port: 3128
+- name: http_4
+  type: http
+  server: 31.57.178.195
+  port: 8080
+- name: http_5
+  type: http
+  server: 45.155.226.177
+  port: 3128
+- name: http_6
+  type: http
+  server: 176.111.37.5
+  port: 39811
+proxy-groups:
+- name: auto
+  type: url-test
+  proxies:
+  - http_0
+  - http_1
+  - http_2
+  - http_3
+  - http_4
+  - http_5
+  - http_6
+  url: http://www.gstatic.com/generate_204
+  interval: 300
