@@ -1,30 +1,81 @@
 # Proxy pool: liveness-checked nodes (subs-check + HTTP pipeline), no speed test, HK/JP/SG/TW/US only
 # Tier: residential subset: hosting=false and mobile=false per ip-api.com (home broadband exits only)
-# Working: 29
+# Working: 30
 
 proxies:
+- alpn:
+  - h3
+  auth-str: dongtaiwang.com
+  down: '20'
+  name: "\U0001F1FA\U0001F1F8_US_\u7F8E\u56FD_IPV4"
+  password: dongtaiwang.com
+  port: 20022
+  server: 137.175.82.42
+  servername: bing.com
+  skip-cert-verify: true
+  sni: bing.com
+  tls: true
+  type: hysteria
+  up: '20'
+- client-fingerprint: chrome
+  name: "\U0001F1F9\U0001F1FC_TW_\u53F0\u6E7E_IPV4"
+  password: 0324fbc29561
+  port: 443
+  server: mfjh645drfj1dr6j5.df6h451rh.xin
+  servername: px.ads.linkedin.com
+  skip-cert-verify: true
+  sni: px.ads.linkedin.com
+  tls: true
+  type: anytls
+- name: "\U0001F1ED\U0001F1F0_HK_\u9999\u6E2F_IPV4"
+  password: 2902c46c8493
+  port: 443
+  server: ibsdsf.df6h451rh.xin
+  servername: docs.microsoft.com
+  skip-cert-verify: true
+  sni: docs.microsoft.com
+  tls: true
+  type: anytls
+- alpn:
+  - h3
+  auth-str: dongtaiwang.com
+  down: '55'
+  name: "\U0001F1FA\U0001F1F8_US_\u7F8E\u56FD_IPV4 (5)"
+  password: dongtaiwang.com
+  port: 11008
+  server: 38.6.222.132
+  servername: bing.com
+  skip-cert-verify: true
+  sni: bing.com
+  tls: true
+  type: hysteria
+  up: '11'
+- alpn:
+  - h3
+  auth-str: dongtaiwang.com
+  down: '55'
+  name: "\U0001F1FA\U0001F1F8_US_\u7F8E\u56FD_IPV4 (6)"
+  password: dongtaiwang.com
+  port: 11008
+  server: 38.6.222.131
+  servername: bing.com
+  skip-cert-verify: true
+  sni: bing.com
+  tls: true
+  type: hysteria
+  up: '11'
 - cipher: chacha20-ietf-poly1305
-  name: "\U0001F1EC\U0001F1E7 \u82F1\u56FD | GBR #6"
+  name: "\U0001F1ED\U0001F1F0[www.v2nodes.com] ss-HK-1624..."
   password: abc62f00-95a8-4c2e-a85d-36a2cdc977da
   port: 28014
   server: waic.pro.main.sys-metric-report.com
   type: ss
-  udp: true
 - cipher: aes-256-gcm
   name: "\U0001F1ED\U0001F1F0[www.v2nodes.com] ss-HK-1621..."
   password: AMok40FfaM+Ikwre16psBpVk6JHxsQZw
   port: 8388
   server: 209.248.57.105
   type: ss
-- client-fingerprint: chrome
-  name: "\U0001F1ED\U0001F1F0 \u9999\u6E2F | HKG"
-  password: 2902c46c8493
-  port: 443
-  server: ibsdsf.df6h451rh.xin
-  skip-cert-verify: true
-  sni: docs.microsoft.com
-  type: anytls
-  udp: true
 - client-fingerprint: chrome
   name: "\U0001F1F9\U0001F1FC \u53F0\u6E7E2|@ripaojiedian"
   password: 0324fbc29561
@@ -34,23 +85,16 @@ proxies:
   sni: docs.microsoft.com
   type: anytls
   udp: true
-- client-fingerprint: chrome
-  name: "\U0001F1ED\U0001F1F0 \u9999\u6E2F3|@ripaojiedian"
-  password: 0324fbc29561
-  port: 443
-  server: 5641sdds.df6h451rh.xin
-  skip-cert-verify: true
-  sni: images.ctfassets.net
-  type: anytls
-  udp: true
-- name: "\U0001F1F9\U0001F1FCTW_1|1.6MB/s"
+- name: "\U0001F1F9\U0001F1FC \u53F0\u6E7E3|@ripaojiedian"
   password: 2902c46c8493
   port: 443
   server: er8u54dh.df6h451rh.xin
   skip-cert-verify: true
   sni: px.ads.linkedin.com
   type: anytls
-- name: "\U0001F1F9\U0001F1FCTW_2|2.8MB/s"
+  udp: true
+- client-fingerprint: chrome
+  name: "\U0001F1F9\U0001F1FC \U0001F1E8\U0001F1F3 \u53F0\u6E7E | TWN 2"
   password: 2902c46c8493
   port: 443
   server: rtifgjdr.df6h451rh.xin
@@ -58,6 +102,13 @@ proxies:
   sni: docs.microsoft.com
   type: anytls
   udp: true
+- name: "\U0001F1ED\U0001F1F0 \u9999\u6E2F | HKG 3"
+  password: 0324fbc29561
+  port: 443
+  server: 5641sdds.df6h451rh.xin
+  skip-cert-verify: true
+  sni: images.ctfassets.net
+  type: anytls
 - name: NN_speednode_0023
   password: exaxgqkKkd0TAMrCxeonWg==
   port: 443
@@ -66,52 +117,30 @@ proxies:
   type: http
   udp: true
   username: mrwdfNTD8M79LCukCieldrqZWqs=
-- name: "\U0001F1FA\U0001F1F8US_6|1.7MB/s"
-  port: 9443
-  server: 38.95.111.226
-  skip-cert-verify: true
-  tls: true
-  type: http
-  udp: true
-  x-toolall-mihomo: true
-- name: "\U0001F1FA\U0001F1F8US_10|3.7MB/s"
-  password: l1tlrdx52v
-  port: 62000
-  server: 66.253.2.69
-  type: socks5
-  username: u_rb1dba2
-- name: "\U0001F1EF\U0001F1F5JP_1|3.9MB/s"
+- auth: 6ac6d17d-040c-4fab-940e-8f5d72c3fed6
+  name: "\U0001F1E9\U0001F1EA \u5FB7\u56FD | DEU 4"
+  password: 6ac6d17d-040c-4fab-940e-8f5d72c3fed6
   port: 443
-  server: fan.571589.xyz
-  tls: true
-  type: http
-- fingerprint: ''
-  name: "\U0001F1F9\U0001F1FCTW_3|5.1MB/s"
-  password: 0324fbc29561
-  port: 443
-  server: mfjh645drfj1dr6j5.df6h451rh.xin
+  server: 135.126.21.106
   skip-cert-verify: true
-  sni: px.ads.linkedin.com
-  type: anytls
+  sni: de1-balance.rezproffx.ru
+  type: hysteria2
+- alpn:
+  - h3
+  auth: ePPsH1bMFD
+  down: 200
+  name: "\U0001F1ED\U0001F1F0 \u9999\u6E2F | HKG 4"
+  password: ePPsH1bMFD
+  port: 50541
+  server: 23.141.172.229
+  skip-cert-verify: true
+  sni: is1-ssl.mzstatic.com
+  type: hysteria2
   udp: true
-  username: 0324fbc29561
-- name: "\U0001F1EF\U0001F1F5JP_2|1.3MB/s"
-  password: EGJDy5Kg
-  port: 42000
-  server: 103.248.150.50
-  skip-cert-verify: true
-  type: socks5
-  username: paZFN3JA
-- name: "\U0001F1EF\U0001F1F5JP_3|3.5MB/s"
-  password: J5rM2xL9
-  port: 42000
-  server: 103.248.150.238
-  skip-cert-verify: true
-  type: socks5
-  username: tB4vN7qP
+  up: 100
 - alterId: 0
   cipher: auto
-  name: "\u7F8E\u56FD 271"
+  name: "\u7F8E\u56FD 297"
   network: tcp
   port: 18000
   server: 38.110.1.246
@@ -119,107 +148,120 @@ proxies:
   udp: true
   uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
 - cipher: aes-256-gcm
-  name: "\U0001F1FA\U0001F1F8US-38.22.17.129-0051 | 66.217MB"
+  name: "\U0001F1FA\U0001F1F8US-38.22.17.129-0160 | 87.127MB"
   password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
   port: 19999
   server: 38.22.17.129
   type: ss
 - cipher: aes-256-gcm
-  name: "\U0001F1FA\U0001F1F8US-216.106.178.169-0079 | 66.104MB"
+  name: "\U0001F1FA\U0001F1F8US-38.121.43.225-0196 | 84.766MB"
   password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
   port: 19999
-  server: 216.106.178.169
+  server: 38.121.43.225
   type: ss
 - cipher: aes-256-gcm
-  name: "\U0001F1FA\U0001F1F8US-38.22.17.219-0088 | 63.72MB"
-  password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
-  port: 19999
-  server: 38.22.17.219
-  type: ss
-- cipher: aes-256-gcm
-  name: "\U0001F1FA\U0001F1F8US-23.150.152.38-0119 | 61.145MB"
-  password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
-  port: 19999
-  server: 23.150.152.38
-  type: ss
-- cipher: aes-256-gcm
-  name: "\U0001F1FA\U0001F1F8US-38.121.43.18-0055 | 57.4MB"
+  name: "\U0001F1FA\U0001F1F8US-38.121.43.18-0172 | 84.15MB"
   password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
   port: 19999
   server: 38.121.43.18
   type: ss
 - cipher: aes-256-gcm
-  name: "\U0001F1FA\U0001F1F8US-38.121.43.231-0065 | 56.559MB"
+  name: "\U0001F1FA\U0001F1F8US-216.106.178.169-0161 | 81.255MB"
+  password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
+  port: 19999
+  server: 216.106.178.169
+  type: ss
+- cipher: aes-256-gcm
+  name: "\U0001F1FA\U0001F1F8US-38.121.43.231-0174 | 73.843MB"
   password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
   port: 19999
   server: 38.121.43.231
   type: ss
 - cipher: aes-256-gcm
-  name: "\U0001F1FA\U0001F1F8US-38.121.43.225-0052 | 36.502MB"
+  name: "\U0001F1FA\U0001F1F8US-38.22.17.219-0167 | 68.127MB"
   password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
   port: 19999
-  server: 38.121.43.225
+  server: 38.22.17.219
   type: ss
-- name: http_2
+- cipher: aes-256-gcm
+  name: "\U0001F1FA\U0001F1F8US-23.150.152.38-0168 | 47.949MB"
+  password: ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4=
+  port: 19999
+  server: 23.150.152.38
+  type: ss
+- alterId: 0
+  cipher: auto
+  name: "\U0001F1ED\U0001F1F0HK-156.245.232.239-0273 | 0.007MB"
+  network: ws
+  port: 35043
+  server: 156.245.232.239
+  skip-cert-verify: false
+  tls: false
+  type: vmess
+  uuid: b15e481d-17e4-41a8-84c2-23d4f0514d9a
+  ws-opts:
+    path: /
+- name: http_3
   type: http
-  server: 210.201.86.72
-  port: 8080
-- name: http_6
+  server: 64.83.0.132
+  port: 1080
+- name: http_5
   type: http
   server: 50.238.106.26
   port: 3128
-- name: http_7
+- name: http_8
   type: http
   server: 216.125.18.67
   port: 3128
-- name: http_15
-  type: http
-  server: 69.171.214.128
-  port: 999
-- name: http_17
-  type: http
-  server: 45.155.226.177
-  port: 3128
-- name: http_18
+- name: http_14
   type: http
   server: 209.18.49.62
   port: 8080
-- name: http_21
+- name: http_15
   type: http
   server: 176.111.37.5
   port: 39811
+- name: http_16
+  type: http
+  server: 45.155.226.177
+  port: 3128
+- name: http_21
+  type: http
+  server: 45.26.30.144
+  port: 8888
 proxy-groups:
 - name: auto
   type: url-test
   proxies:
-  - "\U0001F1EC\U0001F1E7 \u82F1\u56FD | GBR #6"
+  - "\U0001F1FA\U0001F1F8_US_\u7F8E\u56FD_IPV4"
+  - "\U0001F1F9\U0001F1FC_TW_\u53F0\u6E7E_IPV4"
+  - "\U0001F1ED\U0001F1F0_HK_\u9999\u6E2F_IPV4"
+  - "\U0001F1FA\U0001F1F8_US_\u7F8E\u56FD_IPV4 (5)"
+  - "\U0001F1FA\U0001F1F8_US_\u7F8E\u56FD_IPV4 (6)"
+  - "\U0001F1ED\U0001F1F0[www.v2nodes.com] ss-HK-1624..."
   - "\U0001F1ED\U0001F1F0[www.v2nodes.com] ss-HK-1621..."
-  - "\U0001F1ED\U0001F1F0 \u9999\u6E2F | HKG"
   - "\U0001F1F9\U0001F1FC \u53F0\u6E7E2|@ripaojiedian"
-  - "\U0001F1ED\U0001F1F0 \u9999\u6E2F3|@ripaojiedian"
-  - "\U0001F1F9\U0001F1FCTW_1|1.6MB/s"
-  - "\U0001F1F9\U0001F1FCTW_2|2.8MB/s"
+  - "\U0001F1F9\U0001F1FC \u53F0\u6E7E3|@ripaojiedian"
+  - "\U0001F1F9\U0001F1FC \U0001F1E8\U0001F1F3 \u53F0\u6E7E | TWN 2"
+  - "\U0001F1ED\U0001F1F0 \u9999\u6E2F | HKG 3"
   - NN_speednode_0023
-  - "\U0001F1FA\U0001F1F8US_6|1.7MB/s"
-  - "\U0001F1FA\U0001F1F8US_10|3.7MB/s"
-  - "\U0001F1EF\U0001F1F5JP_1|3.9MB/s"
-  - "\U0001F1F9\U0001F1FCTW_3|5.1MB/s"
-  - "\U0001F1EF\U0001F1F5JP_2|1.3MB/s"
-  - "\U0001F1EF\U0001F1F5JP_3|3.5MB/s"
-  - "\u7F8E\u56FD 271"
-  - "\U0001F1FA\U0001F1F8US-38.22.17.129-0051 | 66.217MB"
-  - "\U0001F1FA\U0001F1F8US-216.106.178.169-0079 | 66.104MB"
-  - "\U0001F1FA\U0001F1F8US-38.22.17.219-0088 | 63.72MB"
-  - "\U0001F1FA\U0001F1F8US-23.150.152.38-0119 | 61.145MB"
-  - "\U0001F1FA\U0001F1F8US-38.121.43.18-0055 | 57.4MB"
-  - "\U0001F1FA\U0001F1F8US-38.121.43.231-0065 | 56.559MB"
-  - "\U0001F1FA\U0001F1F8US-38.121.43.225-0052 | 36.502MB"
-  - http_2
-  - http_6
-  - http_7
+  - "\U0001F1E9\U0001F1EA \u5FB7\u56FD | DEU 4"
+  - "\U0001F1ED\U0001F1F0 \u9999\u6E2F | HKG 4"
+  - "\u7F8E\u56FD 297"
+  - "\U0001F1FA\U0001F1F8US-38.22.17.129-0160 | 87.127MB"
+  - "\U0001F1FA\U0001F1F8US-38.121.43.225-0196 | 84.766MB"
+  - "\U0001F1FA\U0001F1F8US-38.121.43.18-0172 | 84.15MB"
+  - "\U0001F1FA\U0001F1F8US-216.106.178.169-0161 | 81.255MB"
+  - "\U0001F1FA\U0001F1F8US-38.121.43.231-0174 | 73.843MB"
+  - "\U0001F1FA\U0001F1F8US-38.22.17.219-0167 | 68.127MB"
+  - "\U0001F1FA\U0001F1F8US-23.150.152.38-0168 | 47.949MB"
+  - "\U0001F1ED\U0001F1F0HK-156.245.232.239-0273 | 0.007MB"
+  - http_3
+  - http_5
+  - http_8
+  - http_14
   - http_15
-  - http_17
-  - http_18
+  - http_16
   - http_21
   url: http://www.gstatic.com/generate_204
   interval: 300
